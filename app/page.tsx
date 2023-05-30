@@ -7,7 +7,6 @@ import ImageItem from "./components/ImageItem";
 const Home = async () => {
   const response = (await listAll(ref(storage, "images/"))).items;
   const paths = response.map((item) => item.fullPath);
-  console.log("response", response[0].fullPath);
   const urlPromises = response.map(async (item) => {
     return await getDownloadURL(item);
   });
