@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { ref } from "firebase/storage";
 import { storage } from "../utils/firebaseConfig";
 import { uploadFile } from "../utils/helpers";
+import Image from "next/image";
 
 const imageMimeTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
 
@@ -86,12 +87,14 @@ const UploadImages = ({
           <div className="flex gap-4 mb-4 flex-wrap">
             {previewItems.length > 0
               ? previewItems.map((item) => (
-                  <img
-                    key={item.id}
-                    src={item.preview}
-                    className="w-16 h-16"
-                    onClick={() => handlePreviewImageClick(item.id)}
-                  />
+                  <div className="w-16 h-16 relative" key={item.id}>
+                    <Image
+                      fill
+                      src={item.preview}
+                      alt=""
+                      onClick={() => handlePreviewImageClick(item.id)}
+                    />
+                  </div>
                 ))
               : isPreviewingImages
               ? "previewing images..."
