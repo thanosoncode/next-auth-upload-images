@@ -1,3 +1,4 @@
+import { User } from "@prisma/client";
 import {
   StorageReference,
   getDownloadURL,
@@ -19,4 +20,25 @@ export const uploadFile = async ({
   } catch (error) {
     console.log(error);
   }
+};
+
+export const createUser = async ({
+  email,
+  password,
+}: {
+  email: string;
+  password: string;
+}): Promise<{ message: string; user: User | null }> => {
+  const userResponse = await fetch("/api/sign-up", {
+    method: "POST",
+    headers: {
+      "Content-type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      password,
+    }),
+  });
+
+  return await userResponse.json();
 };
