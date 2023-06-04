@@ -5,6 +5,7 @@ import { ref } from "firebase/storage";
 import { storage } from "../utils/firebaseConfig";
 import { uploadFile } from "../utils/helpers";
 import Image from "next/image";
+import { usePreviewImages } from "./usePreviewImages";
 
 const imageMimeTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
 
@@ -14,39 +15,17 @@ const UploadImages = ({
   onUploadComplete: () => void;
 }) => {
   const [previewItems, setPreviewItems] = useState<
-    { file: File; id: number; preview: string }[]
+    { file: File; id: number; data: string }[]
   >([]);
   const [imagesFiles, setImageFiles] = useState<FileList | null>(null);
-  const [isPreviewingImages, setIsPreviewImages] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.currentTarget.files;
-    if (!files) return;
-    setIsPreviewImages(true);
-    setImageFiles(files);
-    const promises = Array.from(files).map((file) => readFileAsDataUrl(file));
-    const previews = await Promise.all(promises);
-    const items = Array.from(files).map((file, i) => ({
-      file,
-      id: i,
-      preview: previews[i],
-    }));
-    setPreviewItems(items);
-    setIsPreviewImages(false);
-  };
-
-  const readFileAsDataUrl = (file: File): Promise<string> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        resolve(result);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
+  const { isLoadingPreviews, error, isError, items } = usePreviewImages({
+    imageTypes: imageMimeTypes,
+    ref: inputRef,
+    onSucess: (items) => setPreviewItems(items),
+  });
 
   const handlePreviewImageClick = (id: number) => {
     setPreviewItems(previewItems.filter((item) => item.id !== id));
@@ -85,26 +64,25 @@ const UploadImages = ({
         </p>
         <div>
           <div className="flex gap-4 mb-4 flex-wrap">
-            {previewItems.length > 0
+            {isLoadingPreviews
+              ? "previewing images..."
+              : previewItems?.length > 0
               ? previewItems.map((item) => (
                   <div className="w-16 h-16 relative" key={item.id}>
                     <Image
                       fill
-                      src={item.preview}
+                      src={item.data}
                       alt=""
                       onClick={() => handlePreviewImageClick(item.id)}
                     />
                   </div>
                 ))
-              : isPreviewingImages
-              ? "previewing images..."
               : null}
           </div>
           <input
             type="file"
             multiple
-            onChange={handleInputChange}
-            accept={imageMimeTypes.join(", ")}
+            // accept={imageMimeTypes.join(", ")}
             ref={inputRef}
           />
         </div>
